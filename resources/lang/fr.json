@@ -1,0 +1,4 @@
+{
+  "version-prepend": "version",
+  "commit-label": "commit"
+}

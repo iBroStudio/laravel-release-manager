@@ -1,12 +1,12 @@
 <?php
 
-namespace VendorName\Skeleton\Commands;
+namespace IBroStudio\ReleaseManager\Commands;
 
 use Illuminate\Console\Command;
 
-class SkeletonCommand extends Command
+class ReleaseManagerCommand extends Command
 {
-    public $signature = 'skeleton';
+    public $signature = 'laravel-release-manager';
 
     public $description = 'My command';
 

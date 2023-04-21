@@ -1,5 +1,5 @@
 <?php
 
-use VendorName\Skeleton\Tests\TestCase;
+use IBroStudio\ReleaseManager\Tests\TestCase;
 
 uses(TestCase::class)->in(__DIR__);

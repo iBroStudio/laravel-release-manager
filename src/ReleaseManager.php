@@ -2,95 +2,111 @@
 
 namespace IBroStudio\ReleaseManager;
 
+use GrahamCampbell\GitHub\GitHubManager;
+use IBroStudio\ReleaseManager\Contracts\VersionManagerContract;
 use IBroStudio\ReleaseManager\DtO\CommandsData;
 use IBroStudio\ReleaseManager\DtO\VersionConfigData;
 use IBroStudio\ReleaseManager\DtO\VersionData;
-use IBroStudio\ReleaseManager\Formatters\FullVersionFormatter;
+use IBroStudio\ReleaseManager\Formatters\CompactVersionFormatter;
 use IBroStudio\ReleaseManager\Formatters\VersionFormatterContract;
 use Illuminate\Support\Facades\Process;
 use Illuminate\Support\Str;
 
 class ReleaseManager
 {
-    //$this->releaseManager->current()->get()->format();
-    private ?VersionConfigData $config;
+    private function __construct(
+        private string                 $driver,
+        private VersionManagerContract $versionManager,
+    ) {}
 
-    private ?VersionData $version;
-
-    public function current(?string $path = null): self
-    {
-        $this->config = VersionConfigData::from(
-            path: $path ?? config('release-manager.default.git.repository-path'),
-            commands: CommandsData::from(config('release-manager.git.commands.local')),
-            matcher: config('release-manager.git.version-matcher')
+    public static function use(
+        string $driver,
+    ): static {
+        return new static(
+            driver: $driver,
+            versionManager: app()->makeWith($driver, ['version' => VersionData::optional(null)]),
         );
+    }
+
+    public function getVersion(?string $path = null): self
+    {
+        $this->versionManager->getVersion($path);
 
         return $this;
     }
 
-    public function remote(?string $path = null): self
+    public function properties(): VersionData
     {
-        $this->config = VersionConfigData::from(
-            path: $path ?? config('release-manager.default.git.repository-path'),
-            commands: CommandsData::from(config('release-manager.git.commands.remote')),
-            matcher: config('release-manager.git.version-matcher')
-        );
-
-        return $this;
-    }
-
-    public function get(): self
-    {
-        $this->version = VersionData::fromGit([
-            ...$this->retrieveVersion(),
-            'commit' => $this->retrieveLastCommit()
-        ]);
-
-        return $this;
-    }
-
-    public function values(): VersionData
-    {
-        return $this->version;
+        return $this->versionManager->version;
     }
 
     public function format(?VersionFormatterContract $formatter = null): string
     {
-        return ($formatter ?? new (config('release-manager.default.formatter')))->format($this->version);
+        return ($formatter ?? new (config('release-manager.default.formatter')))
+            ->format($this->versionManager->version);
     }
 
-    private function retrieveVersion(): array
+    public function getNextPatchVersion(?string $path = null): string
     {
-        $retrieve = Process::path($this->config->path)
-            ->run($this->config->commands->version)
-            ->throw();
-
-        return $this->extractVersion($retrieve->output());
-    }
-
-    private function retrieveLastCommit(): string
-    {
-        $retrieve = Process::path($this->config->path)
-            ->run($this->config->commands->commit)
-            ->throw();
-
-        return Str::before($retrieve->output(), "\t");
-    }
-
-    private function extractVersion(string $string): array
-    {
-        preg_match_all(
-            $this->config->matcher,
-            $string,
-            $matches
-        );
-
-        if (empty($matches[0])) {
-            dd('Unable to find git tags');
-//            throw new GitTagNotFound('Unable to find git tags in this repository that matches the git.version.matcher pattern in version.yml');
+        if (is_null($this->versionManager->version)) {
+            $this->versionManager->getVersion($path);
         }
 
-        return $matches;
+        return (new CompactVersionFormatter)
+            ->config(
+                versionLabel: 'v',
+                displayAppLabel: false,
+                displayLastCommit: false
+            )
+            ->format(
+                VersionData::from([
+                    'major' => $this->versionManager->version->major,
+                    'minor'=> $this->versionManager->version->minor,
+                    'patch'=> $this->versionManager->version->patch + 1,
+                ])
+            );
+    }
+
+    public function getNextMinorVersion(?string $path = null): string
+    {
+        if (is_null($this->versionManager->version)) {
+            $this->versionManager->getVersion($path);
+        }
+
+        return (new CompactVersionFormatter)
+            ->config(
+                versionLabel: 'v',
+                displayAppLabel: false,
+                displayLastCommit: false
+            )
+            ->format(
+                VersionData::from([
+                    'major' => $this->versionManager->version->major,
+                    'minor'=> $this->versionManager->version->minor + 1,
+                    'patch'=> 0,
+                ])
+            );
+    }
+
+    public function getNextMajorVersion(?string $path = null): string
+    {
+        if (is_null($this->versionManager->version)) {
+            $this->versionManager->getVersion($path);
+        }
+
+        return (new CompactVersionFormatter)
+            ->config(
+                versionLabel: 'v',
+                displayAppLabel: false,
+                displayLastCommit: false
+            )
+            ->format(
+                VersionData::from([
+                    'major' => $this->versionManager->version->major + 1,
+                    'minor'=> 0,
+                    'patch'=> 0,
+                ])
+            );
     }
 }
 

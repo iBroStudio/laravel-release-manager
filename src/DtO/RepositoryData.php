@@ -4,11 +4,12 @@ namespace IBroStudio\ReleaseManager\DtO;
 
 use Spatie\LaravelData\Data;
 
-class CommandsData extends Data
+class RepositoryData extends Data
 {
     public function __construct(
-        public string $version,
-        public string $commit,
+        public string $name,
+        public string $owner,
+        public string $branch,
     ) {
     }
 }

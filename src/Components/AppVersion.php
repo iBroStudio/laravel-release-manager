@@ -5,6 +5,7 @@ namespace IBroStudio\ReleaseManager\Components;
 use IBroStudio\ReleaseManager\Formatters\CompactVersionFormatter;
 use IBroStudio\ReleaseManager\Formatters\FullVersionFormatter;
 use IBroStudio\ReleaseManager\ReleaseManager;
+use IBroStudio\ReleaseManager\VersionManagers\GitLocalVersionManager;
 use Illuminate\Support\Str;
 use Illuminate\View\Component;
 use Illuminate\View\View;
@@ -12,15 +13,16 @@ use Illuminate\View\View;
 class AppVersion extends Component
 {
     public function __construct(
-        private ReleaseManager $releaseManager,
+        //private ReleaseManager $releaseManager,
         public ?string $formatter = null
-    ) {}
+    ) {
+    }
 
     public function currentVersion(): string
     {
-        $formatter = match($this->formatter) {
+        $formatter = match ($this->formatter) {
             'compact' => new CompactVersionFormatter,
-            'full' =>  new FullVersionFormatter,
+            'full' => new FullVersionFormatter,
             default => new (config('release-manager.default.formatter')),
         };
 
@@ -33,9 +35,8 @@ class AppVersion extends Component
             })
             ->all();
 
-        return $this->releaseManager
-            ->current()
-            ->get()
+        return ReleaseManager::use(GitLocalVersionManager::class)
+            ->getVersion()
             ->format(
                 $formatter
                     ->config(...$config)

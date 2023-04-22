@@ -2,9 +2,6 @@
 
 namespace IBroStudio\ReleaseManager\Formatters;
 
-use IBroStudio\ReleaseManager\DtO\CommandsData;
-use IBroStudio\ReleaseManager\DtO\FormatterConfigData;
-use IBroStudio\ReleaseManager\DtO\VersionConfigData;
 use IBroStudio\ReleaseManager\DtO\VersionData;
 use Illuminate\Support\Str;
 use Illuminate\Support\Stringable;
@@ -18,7 +15,7 @@ class CompactVersionFormatter extends AbstractVersionFormatter
         }
 
         return Str::of($this->config->versionLabel)
-            ->when($this->config->displayAppLabel, function (Stringable $string) use ($version) {
+            ->when($this->config->displayAppLabel, function (Stringable $string) {
                 return $string
                     ->prepend(' ')
                     ->prepend(__(config('release-manager.app-label')));

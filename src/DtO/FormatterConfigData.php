@@ -10,7 +10,8 @@ class FormatterConfigData extends Data
         public string $versionLabel,
         public bool $displayAppLabel,
         public bool $displayLastCommit,
-    ) {}
+    ) {
+    }
 
     public static function fromMultiple(string $versionLabel, bool $displayAppLabel, bool $displayLastCommit): self
     {

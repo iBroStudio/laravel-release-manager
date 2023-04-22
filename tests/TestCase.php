@@ -2,9 +2,9 @@
 
 namespace IBroStudio\ReleaseManager\Tests;
 
+use IBroStudio\ReleaseManager\ReleaseManagerServiceProvider;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Orchestra\Testbench\TestCase as Orchestra;
-use IBroStudio\ReleaseManager\ReleaseManagerServiceProvider;
 
 class TestCase extends Orchestra
 {

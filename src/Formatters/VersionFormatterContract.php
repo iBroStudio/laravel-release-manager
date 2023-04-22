@@ -10,5 +10,6 @@ interface VersionFormatterContract
         ?string $versionLabel = null,
         ?bool $displayAppLabel = null,
         ?bool $displayLastCommit = null): static;
+
     public function format(VersionData $version): string;
 }

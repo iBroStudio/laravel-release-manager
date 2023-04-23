@@ -3,12 +3,18 @@
 namespace IBroStudio\ReleaseManager;
 
 use GrahamCampbell\GitHub\GitHubManager;
+use IBroStudio\ReleaseManager\Contracts\ReleaseHandlerContract;
 use IBroStudio\ReleaseManager\Contracts\VersionManagerContract;
 use IBroStudio\ReleaseManager\DtO\CommandsData;
+use IBroStudio\ReleaseManager\DtO\NewReleaseData;
+use IBroStudio\ReleaseManager\DtO\ReleaseData;
+use IBroStudio\ReleaseManager\DtO\RepositoryData;
 use IBroStudio\ReleaseManager\DtO\VersionConfigData;
 use IBroStudio\ReleaseManager\DtO\VersionData;
+use IBroStudio\ReleaseManager\Exceptions\BadVersionManagerException;
 use IBroStudio\ReleaseManager\Formatters\CompactVersionFormatter;
 use IBroStudio\ReleaseManager\Formatters\VersionFormatterContract;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Process;
 use Illuminate\Support\Str;
 
@@ -107,6 +113,42 @@ class ReleaseManager
                     'patch'=> 0,
                 ])
             );
+    }
+
+    public function createRelease(NewReleaseData $newReleaseData): ReleaseData
+    {
+        if (! Arr::exists(
+            class_implements($this->versionManager),
+            ReleaseHandlerContract::class)
+        ) {
+            throw new BadVersionManagerException(__(':manager is not able to create a release', ['manager' => $this->versionManager::class]));
+        }
+
+        return $this->versionManager->createRelease($newReleaseData);
+    }
+
+    public function fetchLastRelease(): ReleaseData
+    {
+        if (! Arr::exists(
+            class_implements($this->versionManager),
+            ReleaseHandlerContract::class)
+        ) {
+            throw new BadVersionManagerException(__(':manager is not able to fetch the last release', ['manager' => $this->versionManager::class]));
+        }
+
+        return $this->versionManager->fetchLastRelease();
+    }
+
+    public function deleteRelease(int $id): void
+    {
+        if (! Arr::exists(
+            class_implements($this->versionManager),
+            ReleaseHandlerContract::class)
+        ) {
+            throw new BadVersionManagerException(__(':manager is not able to fetch the last release', ['manager' => $this->versionManager::class]));
+        }
+
+        $this->versionManager->deleteRelease($id);
     }
 }
 

@@ -54,6 +54,8 @@ php artisan vendor:publish --tag="laravel-release-manager-views"
 ```php
 $releaseManager = new IBroStudio\ReleaseManager();
 echo $releaseManager->echoPhrase('Hello, IBroStudio!');
+
+<x-app-version class="fixed bottom-0 right-4 text-xs leading-5 text-gray-500" />
 ```
 
 ## Testing

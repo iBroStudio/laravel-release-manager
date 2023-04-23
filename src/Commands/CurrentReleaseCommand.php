@@ -4,6 +4,8 @@ namespace IBroStudio\ReleaseManager\Commands;
 
 use IBroStudio\ReleaseManager\Formatters\FullVersionFormatter;
 use IBroStudio\ReleaseManager\ReleaseManager;
+use IBroStudio\ReleaseManager\VersionManagers\GitLocalVersionManager;
+use IBroStudio\ReleaseManager\VersionManagers\GitRemoteVersionManager;
 use Illuminate\Console\Command;
 
 class CurrentReleaseCommand extends Command
@@ -12,16 +14,12 @@ class CurrentReleaseCommand extends Command
 
     public $description = 'Get the current version';
 
-    public function __construct(
-        private ReleaseManager $releaseManager
-    ) {
-        parent::__construct();
-    }
-
     public function handle(): int
     {
         $this->info(
-            $this->releaseManager->current()->get()->format(new FullVersionFormatter)
+            ReleaseManager::use(GitLocalVersionManager::class)
+                ->getVersion()
+                ->format(new FullVersionFormatter)
         );
 
         return self::SUCCESS;

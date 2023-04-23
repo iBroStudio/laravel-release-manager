@@ -53,4 +53,6 @@ return [
             'display-last-commit' => true,
         ],
     ],
+
+    'automatically_generate_release_notes' => true,
 ];

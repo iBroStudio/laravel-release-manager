@@ -2,6 +2,7 @@
 
 namespace IBroStudio\ReleaseManager\DtO;
 
+use IBroStudio\Git\DtO\CommitData;
 use Spatie\LaravelData\Data;
 
 class VersionData extends Data
@@ -12,11 +13,11 @@ class VersionData extends Data
         public int $patch,
         public ?string $prerelease,
         public ?string $buildmetadata,
-        public ?string $commit,
+        public ?CommitData $commit,
     ) {
     }
 
-    public static function fromGit(array $data, string $commit): self
+    public static function fromGit(array $data, CommitData $commit): self
     {
         return new self(
             major: $data['major'][0],

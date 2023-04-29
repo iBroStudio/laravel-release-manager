@@ -1,6 +1,6 @@
 <?php
 
-namespace IBroStudio\ReleaseManager\Formatters;
+namespace IBroStudio\ReleaseManager\Contracts;
 
 use IBroStudio\ReleaseManager\DtO\VersionData;
 

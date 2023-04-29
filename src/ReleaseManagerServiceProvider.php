@@ -15,7 +15,7 @@ class ReleaseManagerServiceProvider extends PackageServiceProvider
     {
         $package
             ->name('release-manager')
-            ->hasConfigFile(['release-manager', 'github'])
+            ->hasConfigFile(['release-manager'])
             ->hasTranslations()
             ->hasViews()
             ->hasViewComponents('', AppVersion::class)

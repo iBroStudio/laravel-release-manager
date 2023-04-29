@@ -22,7 +22,7 @@ class DeleteReleaseCommand extends Command
         $release =  $releaseManager->fetchLastRelease();
 
         if ($this->confirm("Do you really want to delete the release {$release->tag_name}?")) {
-            $releaseManager->deleteRelease($release->id);
+            $releaseManager->deleteRelease($release);
 
             $this->info("Release $release->tag_name was successfully deleted!");
         }

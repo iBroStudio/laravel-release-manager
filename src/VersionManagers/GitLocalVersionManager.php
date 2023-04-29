@@ -2,25 +2,26 @@
 
 namespace IBroStudio\ReleaseManager\VersionManagers;
 
+use IBroStudio\Git\DtO\CommitData;
+use IBroStudio\Git\Git;
+use IBroStudio\Git\Repository;
 use IBroStudio\ReleaseManager\Contracts\VersionManagerContract;
-use IBroStudio\ReleaseManager\DtO\CommandsData;
-use IBroStudio\ReleaseManager\DtO\VersionConfigData;
 use IBroStudio\ReleaseManager\DtO\VersionData;
-use IBroStudio\ReleaseManager\Formatters\VersionFormatterContract;
-use Illuminate\Support\Facades\Process;
-use Illuminate\Support\Str;
 
 class GitLocalVersionManager implements VersionManagerContract
 {
+    private Repository $repository;
+
     public function __construct(
-        private ?string $path = null,
+        private string $repository_path,
+        private Git $git,
         public ?VersionData $version = null,
-    ) {}
+    ) {
+        $this->repository = $this->git->open($this->repository_path);
+    }
 
-    public function getVersion(?string $path = null): self
+    public function getVersion(): self
     {
-        $this->path = $path ?? config('release-manager.default.git.repository-path');
-
         $this->version = VersionData::fromGit(
             $this->retrieveVersion(),
             $this->retrieveLastCommit()
@@ -36,20 +37,14 @@ class GitLocalVersionManager implements VersionManagerContract
 
     private function retrieveVersion(): array
     {
-        $retrieve = Process::path($this->path)
-            ->run(config('release-manager.git.commands.local.version'))
-            ->throw();
-
-        return $this->extractVersion($retrieve->output());
+        return $this->extractVersion(
+            $this->repository->tag()->get()
+        );
     }
 
-    private function retrieveLastCommit(): string
+    private function retrieveLastCommit(): CommitData
     {
-        $retrieve = Process::path($this->path)
-            ->run(config('release-manager.git.commands.local.commit'))
-            ->throw();
-
-        return Str::before($retrieve->output(), "\t");
+        return $this->repository->commits()->last();
     }
 
     private function extractVersion(string $string): array

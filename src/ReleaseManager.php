@@ -2,35 +2,31 @@
 
 namespace IBroStudio\ReleaseManager;
 
-use GrahamCampbell\GitHub\GitHubManager;
 use IBroStudio\ReleaseManager\Contracts\ReleaseHandlerContract;
+use IBroStudio\ReleaseManager\Contracts\VersionFormatterContract;
 use IBroStudio\ReleaseManager\Contracts\VersionManagerContract;
-use IBroStudio\ReleaseManager\DtO\CommandsData;
 use IBroStudio\ReleaseManager\DtO\NewReleaseData;
 use IBroStudio\ReleaseManager\DtO\ReleaseData;
-use IBroStudio\ReleaseManager\DtO\RepositoryData;
-use IBroStudio\ReleaseManager\DtO\VersionConfigData;
 use IBroStudio\ReleaseManager\DtO\VersionData;
 use IBroStudio\ReleaseManager\Exceptions\BadVersionManagerException;
 use IBroStudio\ReleaseManager\Formatters\CompactVersionFormatter;
-use IBroStudio\ReleaseManager\Formatters\VersionFormatterContract;
 use Illuminate\Support\Arr;
-use Illuminate\Support\Facades\Process;
-use Illuminate\Support\Str;
 
 class ReleaseManager
 {
     private function __construct(
-        private string                 $driver,
         private VersionManagerContract $versionManager,
     ) {}
 
     public static function use(
         string $driver,
+        ?string $repository_path = null
     ): static {
         return new static(
-            driver: $driver,
-            versionManager: app()->makeWith($driver, ['version' => VersionData::optional(null)]),
+            versionManager: app()->makeWith($driver, [
+                'repository_path' => $repository_path ?? config('release-manager.default.git.repository-path'),
+                'version' => VersionData::optional(null)
+            ]),
         );
     }
 
@@ -139,7 +135,7 @@ class ReleaseManager
         return $this->versionManager->fetchLastRelease();
     }
 
-    public function deleteRelease(int $id): void
+    public function deleteRelease(ReleaseData $release): void
     {
         if (! Arr::exists(
             class_implements($this->versionManager),
@@ -148,7 +144,7 @@ class ReleaseManager
             throw new BadVersionManagerException(__(':manager is not able to fetch the last release', ['manager' => $this->versionManager::class]));
         }
 
-        $this->versionManager->deleteRelease($id);
+        $this->versionManager->deleteRelease($release);
     }
 }
 

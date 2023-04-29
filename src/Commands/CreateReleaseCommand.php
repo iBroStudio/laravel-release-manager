@@ -19,6 +19,7 @@ class CreateReleaseCommand extends Command
 
     public function handle(): int
     {
+        /*
         ReleaseManager::use(GitRemoteVersionManager::class)
             ->createRelease(
                 NewReleaseData::from([
@@ -26,7 +27,7 @@ class CreateReleaseCommand extends Command
                     'name' => 'Release manager test#1'
                 ])
             );
-
+*/
         $releaseManager = ReleaseManager::use(GitLocalVersionManager::class);
 
         $this->comment(

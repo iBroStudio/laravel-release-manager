@@ -36,7 +36,7 @@ class CompactVersionFormatter extends AbstractVersionFormatter
                     return $string
                         ->append('-')
                         ->append(
-                            Str::substr($version->commit, 0, config('release-manager.git.commit-length'))
+                            Str::substr($version->commit->hash, 0, config('release-manager.git.commit-length'))
                         );
                 }
             )

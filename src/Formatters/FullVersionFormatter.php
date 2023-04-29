@@ -34,7 +34,7 @@ class FullVersionFormatter extends AbstractVersionFormatter
                         ->append(__('commit-label'))
                         ->append(' ')
                         ->append(
-                            Str::substr($version->commit, 0, config('release-manager.git.commit-length'))
+                            Str::substr($version->commit->hash, 0, config('release-manager.git.commit-length'))
                         )
                         ->append(')');
                 }

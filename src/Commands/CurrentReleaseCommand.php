@@ -17,7 +17,7 @@ class CurrentReleaseCommand extends Command
     public function handle(): int
     {
         $this->info(
-            ReleaseManager::use(GitLocalVersionManager::class)
+            ReleaseManager::use(GitRemoteVersionManager::class)
                 ->getVersion()
                 ->format(new FullVersionFormatter)
         );

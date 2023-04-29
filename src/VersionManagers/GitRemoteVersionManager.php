@@ -3,34 +3,34 @@
 namespace IBroStudio\ReleaseManager\VersionManagers;
 
 use GrahamCampbell\GitHub\GitHubManager;
+use IBroStudio\Git\DtO\CommitData;
+use IBroStudio\Git\Git;
+use IBroStudio\Git\Repository;
 use IBroStudio\ReleaseManager\Contracts\ReleaseHandlerContract;
+use IBroStudio\ReleaseManager\Contracts\VersionFormatterContract;
 use IBroStudio\ReleaseManager\Contracts\VersionManagerContract;
 use IBroStudio\ReleaseManager\DtO\NewReleaseData;
 use IBroStudio\ReleaseManager\DtO\ReleaseData;
 use IBroStudio\ReleaseManager\DtO\RepositoryData;
 use IBroStudio\ReleaseManager\DtO\VersionData;
-use IBroStudio\ReleaseManager\Exceptions\BadVersionManagerException;
-use IBroStudio\ReleaseManager\Formatters\VersionFormatterContract;
 use Illuminate\Support\Facades\Process;
 use Illuminate\Support\Str;
 
 class GitRemoteVersionManager implements VersionManagerContract, ReleaseHandlerContract
 {
-    private ?RepositoryData $repository = null;
+    private Repository $repository;
 
     public function __construct(
+        private string $repository_path,
+        private Git $git,
         private GitHubManager $github,
-        private ?string $path = null,
         public ?VersionData $version = null,
-    )
-    {
-
+    ) {
+        $this->repository = $this->git->open($this->repository_path);
     }
 
-    public function getVersion(?string $path = null): self
+    public function getVersion(): self
     {
-        $this->initRepoData($path);
-
         $this->version = VersionData::fromGit(
             $this->retrieveVersion(),
             $this->retrieveLastCommit()
@@ -70,17 +70,9 @@ class GitRemoteVersionManager implements VersionManagerContract, ReleaseHandlerC
         return ReleaseData::from($release);
     }
 
-    public function fetchLastRelease(?string $path = null): ReleaseData
+    public function fetchLastRelease(): ReleaseData
     {
-        $this->initRepoData($path);
-
-        $releases = $this->github
-            ->repo()
-            ->releases()
-            ->all(
-                username: $this->repository->owner,
-                repository: $this->repository->name
-            );
+        $releases = $this->repository->releases()->all();
 
         if (! count($releases)) {
             dd('No releases');
@@ -89,8 +81,9 @@ class GitRemoteVersionManager implements VersionManagerContract, ReleaseHandlerC
         return ReleaseData::from($releases[0]);
     }
 
-    public function deleteRelease(int $id): void
+    public function deleteRelease(ReleaseData $release): void
     {
+        dd($release);
         $this->github
             ->repo()
             ->releases()
@@ -101,57 +94,24 @@ class GitRemoteVersionManager implements VersionManagerContract, ReleaseHandlerC
             );
     }
 
-    private function initRepoData(?string $path = null): void
-    {
-        if (is_null($this->repository)) {
-            $retrieve = Process::path($path ?? config('release-manager.default.git.repository-path'))
-                ->run('git config --local -l')
-                ->throw();
-
-            $gitConfig = collect(explode("\n", $retrieve->output()))
-                ->filter(function (string $line) {
-                    return Str::contains($line, 'remote.origin.url');
-                })
-                ->first();
-
-            preg_match('/:(?<username>.*)\/(?<repository>.*)\.git/', $gitConfig, $matches);
-
-            $repository = $this->github
-                ->repo()
-                ->show(
-                    username: $matches['username'],
-                    repository: $matches['repository']
-                );
-
-            $this->repository = RepositoryData::from([
-                'name' => $repository['name'],
-                'owner' => $repository['owner']['login'],
-                'branch' => $repository['default_branch']
-            ]);
-        }
-    }
-
     private function retrieveVersion(): array
     {
         $release = $this->fetchLastRelease();
 
         return $this->extractVersion($release->tag_name);
     }
-
-    private function retrieveLastCommit(): string
+/*
+    private function retrieveLastCommit(): CommitData
     {
-        $commits = $this->github
-            ->repo()
+        return $this->repository->commits()->last();
+    }
+    */
+    private function retrieveLastCommit(): CommitData
+    {
+        return $this->repository
+            ->remote()
             ->commits()
-            ->all(
-                username: $this->repository->owner,
-                repository: $this->repository->name,
-                params: [
-                    'sha' => $this->repository->branch
-                ]
-        );
-
-        return $commits[0]['sha'];
+            ->last();
     }
 
     private function extractVersion(string $string): array

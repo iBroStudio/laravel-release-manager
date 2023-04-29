@@ -2,6 +2,7 @@
 
 namespace IBroStudio\ReleaseManager\Formatters;
 
+use IBroStudio\ReleaseManager\Contracts\VersionFormatterContract;
 use IBroStudio\ReleaseManager\DtO\FormatterConfigData;
 use IBroStudio\ReleaseManager\DtO\VersionData;
 
